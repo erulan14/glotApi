@@ -1,21 +1,23 @@
 import uvicorn
 from glot import Glot
 from glot.response import HTMLResponse
-from glot.staticfiles import StaticFiles
 from glot.templating import Jinja2Templates
+from datetime import datetime
 
 app = Glot()
-
 templates = Jinja2Templates(directory="templates")
+
 
 @app.route("/")
 def start(request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    params = request.query_params
+    print(params)
+    return templates.TemplateResponse("index.html", {"request": request, "datetime": datetime.now()})
 
 
 @app.route("/test/{name}")
 def test(request, name):
-    return f"<h1>{name}</h1>"
+    return HTMLResponse(f"<h1>{name}</h1>")
 
 
 if __name__ == "__main__":

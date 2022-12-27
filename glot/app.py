@@ -13,28 +13,36 @@ class App:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         request = Request(scope=scope, receive=receive)
-        response = self.handle_request(request)
+        response = self.__handle_request(request)
         await response(scope, receive, send)
 
     @staticmethod
-    def default_response():
+    def __default_response():
+        """
+        Return Not Found
+        """
         response = HTMLResponse("<h1>Not Found</h1>")
         response.status_code = 404
         return response
 
-    def find_handler(self, request_path):
+    def __find_handler(self, request_path):
+        """
+
+        :param request_path:
+        :return hanlder and parse_result:
+        """
         for path, handler in self.__routes.items():
             parse_result = parse(path, request_path)
             if parse_result is not None:
                 return handler, parse_result.named
         return None, None
 
-    def handle_request(self, request):
-        handler, kwargs = self.find_handler(request_path=request.scope.get("path"))
+    def __handle_request(self, request):
+        handler, kwargs = self.__find_handler(request_path=request.scope.get("path"))
         if handler is not None:
             response = handler(request, **kwargs)
         else:
-            response = self.default_response()
+            response = self.__default_response()
         return response
 
     def route(self, path):
