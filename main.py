@@ -3,7 +3,6 @@ from glot import Glot
 from glot.response import HTMLResponse
 from glot.templating import Jinja2Templates
 from datetime import datetime
-
 from pydantic import BaseModel
 
 app = Glot()
@@ -31,8 +30,12 @@ def test(request, name):
 
 @app.route("/api/v1/", methods=["POST"])
 def api(request):
-    test = request.query_params.get("test")
-    return users
+    params = request.query_params.get("test")
+    form = app.get_form(request)
+    json = app.get_json(request)
+    print(json)
+
+    return json
 
 
 if __name__ == "__main__":

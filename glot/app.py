@@ -2,13 +2,15 @@ from starlette.requests import Request
 from starlette.responses import *
 from .types import Scope, Receive, Send
 from parse import parse
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 
 class App:
     __routes: dict = {}
 
     def __int__(self):
-        #self.__routes: dict = {}
         pass
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
@@ -61,6 +63,30 @@ class App:
         else:
             response = self.__default_response()
         return response
+
+    @staticmethod
+    def get_body(request):
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(request.body())
+        return result
+
+    @staticmethod
+    def get_form(request):
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(request.form())
+        return result
+
+    @staticmethod
+    def get_json(request):
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(request.json())
+        return result
+
+    @staticmethod
+    def read_file(file):
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(file.read())
+        return result
 
     def route(self, path, methods=None):
         if methods is None:
