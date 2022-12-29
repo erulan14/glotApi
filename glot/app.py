@@ -2,6 +2,7 @@ from starlette.requests import Request
 from starlette.responses import *
 from .types import Scope, Receive, Send
 from parse import parse
+import typing as t
 
 
 class App:
@@ -25,9 +26,8 @@ class App:
         """Return Method not Allowed"""
         return HTMLResponse("<h1>Method Not Allowed</h1>", status_code=405)
 
-    async def __find_handler(self, request_path, request):
+    def __find_handler(self, request_path, request):
         """
-
         :param request_path:
         :return hanlder and parse_result:
         """
@@ -42,7 +42,7 @@ class App:
         return None, None, None
 
     async def __handle_request(self, request):
-        handler, method, kwargs = await self.__find_handler(
+        handler, method, kwargs = self.__find_handler(
             request_path=request.scope.get("path"),
             request=request
         )
@@ -61,13 +61,13 @@ class App:
             response = self.__default_response()
         return response
 
-    def route(self, path, methods=None):
+    def route(self, path: str, methods: t.Optional[list] = None):
         if methods is None:
             methods = ["GET"]
 
         def wrapper(func):
-            async def wrapped(request):
-                return await func(request)
+            async def wrapped(request, **kwargs):
+                return await func(request, **kwargs)
 
             self.__routes[path] = {"methods": methods, "handler": wrapped}
 

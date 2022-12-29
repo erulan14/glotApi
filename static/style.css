@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    margin: 10px;
+}
+
+nav {
+    background: #7e7e7e;
+}
+
+nav .logo {
+    padding: 10px;
+}
+
+section {
+    margin: 10px;
+}
+
+
+footer {
+    left: 0;
+    bottom: 0;
+    margin: 10px;
+    background-color: red;
+    color: white;
+    text-align: center;
+}
