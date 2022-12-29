@@ -2,9 +2,6 @@ from starlette.requests import Request
 from starlette.responses import *
 from .types import Scope, Receive, Send
 from parse import parse
-import asyncio
-import nest_asyncio
-nest_asyncio.apply()
 
 
 class App:
@@ -15,7 +12,7 @@ class App:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         request = Request(scope=scope, receive=receive)
-        response = self.__handle_request(request)
+        response = await self.__handle_request(request)
         await response(scope, receive, send)
 
     @staticmethod
@@ -28,7 +25,7 @@ class App:
         """Return Method not Allowed"""
         return HTMLResponse("<h1>Method Not Allowed</h1>", status_code=405)
 
-    def __find_handler(self, request_path, request):
+    async def __find_handler(self, request_path, request):
         """
 
         :param request_path:
@@ -44,14 +41,14 @@ class App:
                     return handler, None, parse_result.named
         return None, None, None
 
-    def __handle_request(self, request):
-        handler, method, kwargs = self.__find_handler(
+    async def __handle_request(self, request):
+        handler, method, kwargs = await self.__find_handler(
             request_path=request.scope.get("path"),
             request=request
         )
         if handler is not None:
             if method is not None:
-                response = handler(request, **kwargs)
+                response = await handler(request, **kwargs)
 
                 if isinstance(response, str):
                     response = HTMLResponse(response)
@@ -64,36 +61,16 @@ class App:
             response = self.__default_response()
         return response
 
-    @staticmethod
-    def get_body(request):
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(request.body())
-        return result
-
-    @staticmethod
-    def get_form(request):
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(request.form())
-        return result
-
-    @staticmethod
-    def get_json(request):
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(request.json())
-        return result
-
-    @staticmethod
-    def read_file(file):
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(file.read())
-        return result
-
     def route(self, path, methods=None):
         if methods is None:
             methods = ["GET"]
 
-        def wrapper(handler):
-            self.__routes[path] = {"methods": methods, "handler": handler}
-            return handler
+        def wrapper(func):
+            async def wrapped(request):
+                return await func(request)
+
+            self.__routes[path] = {"methods": methods, "handler": wrapped}
+
+            return wrapped
         return wrapper
 
